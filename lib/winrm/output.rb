@@ -23,5 +23,14 @@ module WinRM
         line[:stderr]
       end.compact.join
     end
+
+    def stderr_text
+      doc = REXML::Document.new(stderr)
+      text = doc.root.get_elements('//S').map(&:text).join
+      text.gsub(/_x(\h\h\h\h)_/) do
+        code = Regexp.last_match[1]
+        code.hex.chr
+      end
+    end
   end
 end

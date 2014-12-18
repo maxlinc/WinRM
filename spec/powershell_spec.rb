@@ -27,7 +27,7 @@ describe 'winrm client powershell', :integration => true do
     subject(:output) { @winrm.powershell('dir /z') }
     it { should have_exit_code 1 }
     it { should have_no_stdout }
-    #TODO Better 
+    #TODO Better
     #it { should have_stderr_match /Invalid switch/ }
   end
 
@@ -58,10 +58,23 @@ describe 'winrm client powershell', :integration => true do
 
   describe 'capturing output from Write-Host and Write-Error' do
     subject(:output) do
-      script = <<-eos
-      Write-Host 'Hello'
-      $host.ui.WriteErrorLine(', world!')
-      eos
+      script = <<eos.encode(crlf_newline: true)
+$pshost = get-host
+$pswindow = $pshost.ui.rawui
+
+$newsize = $pswindow.buffersize
+$newsize.height = 3000
+$newsize.width = 150
+$pswindow.buffersize = $newsize
+
+$newsize = $pswindow.windowsize
+$newsize.height = 50
+$newsize.width = 150
+$pswindow.windowsize = $newsize
+Write-Host 'Hello'
+Write-Error 'foo'
+$host.ui.WriteErrorLine(', world!')
+eos
 
       @captured_stdout, @captured_stderr = "", ""
       @winrm.powershell(script) do |stdout, stderr|
@@ -79,7 +92,7 @@ describe 'winrm client powershell', :integration => true do
       # TODO: Option to parse CLIXML
       # expect(output.output).to eq("Hello\n, world!")
       # expect(output.stderr).to eq(", world!")
-      expect(output.stderr).to eq("#< CLIXML\r\n<Objs Version=\"1.1.0.1\" xmlns=\"http://schemas.microsoft.com/powershell/2004/04\"><S S=\"Error\">, world!_x000D__x000A_</S></Objs>")
+      expect(output.stderr_text).to eq("#< CLIXML\r\n<Objs Version=\"1.1.0.1\" xmlns=\"http://schemas.microsoft.com/powershell/2004/04\"><S S=\"Error\">, world!_x000D__x000A_</S></Objs>")
       expect(output.stderr).to eq(@captured_stderr)
     end
 

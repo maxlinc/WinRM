@@ -1,11 +1,11 @@
 # Copyright 2010 Dan Wanek <dan.wanek@gmail.com>
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -303,7 +303,7 @@ module WinRM
       script = script_file.kind_of?(IO) ? script_file.read : script_file
       script = script.encode('UTF-16LE', 'UTF-8')
       script = Base64.strict_encode64(script)
-      run_cmd("powershell -encodedCommand #{script}", &block)
+      run_cmd("powershell -outputFormat Text -encodedCommand #{script}", &block)
     end
     alias :powershell :run_powershell_script
 
@@ -332,7 +332,7 @@ module WinRM
       resp = send_message(builder.target!)
       parser = Nori.new(:parser => :rexml, :advanced_typecasting => false, :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }, :strip_namespaces => true)
       hresp = parser.parse(resp.to_s)[:envelope][:body]
-      
+
       # Normalize items so the type always has an array even if it's just a single item.
       items = {}
       if hresp[:enumerate_response][:items]
@@ -403,7 +403,7 @@ module WinRM
     def send_message(message)
       @xfer.send_request(message)
     end
-    
+
 
     # Helper methods for SOAP Headers
 
